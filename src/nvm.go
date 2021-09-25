@@ -12,7 +12,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"syscall"
 	"time"
 
 	"nvm/arch"
@@ -402,8 +401,7 @@ func uninstall(version string) {
 		fmt.Printf("Uninstalling node v" + version + "...")
 		v, _ := node.GetCurrentVersion()
 		if v == version {
-			runElevated(fmt.Sprintf(`"%s" cmd /C rmdir "%s"`,
-				filepath.Join(env.root, "elevate.cmd"),
+			runElevated(fmt.Sprintf(`rmdir "%s"`,
 				filepath.Clean(env.symlink)))
 		}
 		e := os.RemoveAll(filepath.Join(env.root, "v"+version))
@@ -470,16 +468,14 @@ func use(version string, cpuarch string) {
 	// Remove symlink if it already exists
 	sym, _ := os.Stat(env.symlink)
 	if sym != nil {
-		if !runElevated(fmt.Sprintf(`"%s" cmd /C rmdir "%s"`,
-			filepath.Join(env.root, "elevate.cmd"),
+		if !runElevated(fmt.Sprintf(`rmdir "%s"`,
 			filepath.Clean(env.symlink))) {
 			return
 		}
 	}
 
 	// Create new symlink
-	if !runElevated(fmt.Sprintf(`"%s" cmd /C mklink /D "%s" "%s"`,
-		filepath.Join(env.root, "elevate.cmd"),
+	if !runElevated(fmt.Sprintf(`mklink /D "%s" "%s"`,
 		filepath.Clean(env.symlink),
 		filepath.Join(env.root, "v"+version))) {
 		return
@@ -633,8 +629,7 @@ func enable() {
 }
 
 func disable() {
-	if !runElevated(fmt.Sprintf(`"%s" cmd /C rmdir "%s"`,
-		filepath.Join(env.root, "elevate.cmd"),
+	if !runElevated(fmt.Sprintf(`rmdir "%s"`,
 		filepath.Clean(env.symlink))) {
 		return
 	}
@@ -759,13 +754,15 @@ func updateRootDir(path string) {
 }
 
 func runElevated(command string) bool {
-	c := exec.Command("cmd") // dummy executable that actually needs to exist but we'll overwrite using .SysProcAttr
+	//c := exec.Command("cmd") // dummy executable that actually needs to exist but we'll overwrite using .SysProcAttr
 
 	// Based on the official docs, syscall.SysProcAttr.CmdLine doesn't exist.
 	// But it does and is vital:
 	// https://github.com/golang/go/issues/15566#issuecomment-333274825
 	// https://medium.com/@felixge/killing-a-child-process-and-all-of-its-children-in-go-54079af94773
-	c.SysProcAttr = &syscall.SysProcAttr{CmdLine: command}
+	//c.SysProcAttr = &syscall.SysProcAttr{CmdLine: command}
+
+	c := exec.Command("powershell", "-Command", "Start-Process -Verb RunAs cmd -ArgumentList '/c','" + command + "'")
 
 	var stderr bytes.Buffer
 	c.Stderr = &stderr
