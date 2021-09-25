@@ -81,9 +81,9 @@ func main() {
 
 	// Run the appropriate method
 	switch args[1] {
-	case "install":
+	case "install", "add":
 		install(detail, procarch)
-	case "uninstall":
+	case "uninstall", "remove", "rm":
 		uninstall(detail)
 	case "use":
 		use(detail, procarch)
