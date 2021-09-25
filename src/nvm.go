@@ -90,9 +90,9 @@ func main() {
 
 	// Run the appropriate method
 	switch args[1] {
-	case "install":
+	case "install", "add", "i":
 		install(detail, procarch)
-	case "uninstall":
+	case "uninstall", "remove", "rm", "u":
 		uninstall(detail)
 	case "use":
 		use(detail, procarch)
@@ -743,7 +743,7 @@ func list(listtype string) {
 	if listtype == "" {
 		listtype = "installed"
 	}
-	if listtype != "installed" && listtype != "available" {
+	if listtype != "installed" && listtype != "available" && listtype != "a" && listtype != "remote" && listtype != "r" {
 		fmt.Println("\nInvalid list option.\n\nPlease use on of the following\n  - nvm list\n  - nvm list installed\n  - nvm list available")
 		help()
 		return
